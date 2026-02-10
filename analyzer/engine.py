@@ -175,8 +175,8 @@ After collecting ALL data, you MUST generate an Excel report before writing mark
          "url": "https://example.com",
          "total_requests": 45,
          "total_transfer_bytes": 1524000,
-         "by_type": {{ "script": {{ "count": 15, "transfer_bytes": 500000 }} }},
-         "largest_resources": [{{ "url": "...", "transfer_bytes": 200000 }}]
+         "by_type": {{ "script": {{ "count": 15, "bytes": 500000 }} }},
+         "largest_resources": [{{ "url": "...", "size_bytes": 200000 }}]
        }}
      ]
    }}

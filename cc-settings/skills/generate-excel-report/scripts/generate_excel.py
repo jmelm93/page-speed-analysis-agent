@@ -201,7 +201,11 @@ def create_network_analysis_sheet(wb: openpyxl.Workbook, data: dict) -> None:
 
     for row_idx, network in enumerate(network_results, 2):
         url = network.get("url", "")
-        by_type = network.get("by_type", {})
+        # Handle both flat and nested (summary) formats from capture_network.py
+        summary = network.get("summary", {})
+        by_type = network.get("by_type") or summary.get("by_type", {})
+        total_requests = network.get("total_requests") or summary.get("total_requests", 0)
+        total_bytes = network.get("total_transfer_bytes") or summary.get("total_transfer_bytes", 0)
         largest = network.get("largest_resources", [])
 
         scripts = by_type.get("script", {})
@@ -212,20 +216,20 @@ def create_network_analysis_sheet(wb: openpyxl.Workbook, data: dict) -> None:
         largest_name = ""
         if largest:
             resource = largest[0]
-            size_kb = resource.get("transfer_bytes", 0) / 1024
+            size_kb = resource.get("size_bytes", 0) / 1024
             largest_name = f"{resource.get('url', '').split('/')[-1][:30]} ({size_kb:.0f}KB)"
 
         ws.cell(row=row_idx, column=1, value=sanitize_for_excel(url))
-        ws.cell(row=row_idx, column=2, value=network.get("total_requests", 0))
-        ws.cell(row=row_idx, column=3, value=round(network.get("total_transfer_bytes", 0) / 1024 / 1024, 2))
+        ws.cell(row=row_idx, column=2, value=total_requests)
+        ws.cell(row=row_idx, column=3, value=round(total_bytes / 1024 / 1024, 2))
         ws.cell(row=row_idx, column=4, value=scripts.get("count", 0))
-        ws.cell(row=row_idx, column=5, value=round(scripts.get("transfer_bytes", 0) / 1024, 0))
+        ws.cell(row=row_idx, column=5, value=round(scripts.get("bytes", 0) / 1024, 0))
         ws.cell(row=row_idx, column=6, value=images.get("count", 0))
-        ws.cell(row=row_idx, column=7, value=round(images.get("transfer_bytes", 0) / 1024, 0))
+        ws.cell(row=row_idx, column=7, value=round(images.get("bytes", 0) / 1024, 0))
         ws.cell(row=row_idx, column=8, value=css.get("count", 0))
-        ws.cell(row=row_idx, column=9, value=round(css.get("transfer_bytes", 0) / 1024, 0))
+        ws.cell(row=row_idx, column=9, value=round(css.get("bytes", 0) / 1024, 0))
         ws.cell(row=row_idx, column=10, value=fonts.get("count", 0))
-        ws.cell(row=row_idx, column=11, value=round(fonts.get("transfer_bytes", 0) / 1024, 0))
+        ws.cell(row=row_idx, column=11, value=round(fonts.get("bytes", 0) / 1024, 0))
         ws.cell(row=row_idx, column=12, value=sanitize_for_excel(largest_name))
 
     ws.freeze_panes = "A2"
