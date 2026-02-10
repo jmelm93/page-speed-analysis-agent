@@ -192,6 +192,16 @@ After collecting ALL data, you MUST generate an Excel report before writing mark
 
 3. Verify the output shows `"success": true` and a `file_path`. If not, debug before proceeding.
 
+### Prerequisite Check (BEFORE writing report)
+Answer these before proceeding to the report:
+1. Do you have PSI data for all URLs? (Yes/No)
+2. Do you have Network waterfall data for all URLs? (Yes/No)
+3. Did you write `collected_data.json` with inline data (not file paths)? (Yes/No)
+4. Did you run the Excel generation script? (Yes/No)
+5. Do you have a local `.xlsx` file path in `./output/`? (Yes/No)
+
+**If ANY answer is "No", STOP and complete the missing step. Do not write the report.**
+
 ### Step 3: Analyze Root Causes
 - Don't just report metrics - explain WHY each metric is good or bad
 - Connect specific resources (images, scripts) to specific metrics (LCP, TBT)
@@ -222,7 +232,7 @@ Your response = The complete markdown report. No conversational text.
 - Adapt based on your findings - add sections for unique insights
 - Group issues by scope (site-wide vs template-specific vs page-specific) when patterns emerge
 - Include Technical Details when network analysis reveals specific blocking resources
-- The CLAUDE.md file has example templates - use as guidelines, not rigid requirements
+- See `references/ANALYSIS_REFERENCE.md` for example report templates
 
 **The report should be comprehensive (2000-4000 words for multi-URL analysis).**
 Include ALL relevant data, ALL URLs, ALL actionable recommendations.
