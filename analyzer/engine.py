@@ -190,7 +190,7 @@ After collecting ALL data, you MUST generate an Excel report before writing mark
    python {excel_script} --data ./collected_data.json --output-dir ./output
    ```
 
-3. Verify the output shows `"success": true` and a `file_path`. If not, debug before proceeding.
+3. Verify the output shows `"success": true` and a `file_path`. The output will also include a `zip_file_path` with all raw API source data. If not successful, debug before proceeding.
 
 ### Prerequisite Check (BEFORE writing report)
 Answer these before proceeding to the report:
@@ -224,6 +224,7 @@ Your response = The complete markdown report. No conversational text.
 **Minimum required elements:**
 - Executive Summary with overall health assessment
 - Excel Report reference: `**[Download Full Excel Report](./output/filename.xlsx)**`
+- Source Data reference: `**[Download Source Data](./output/filename.zip)**`
 - Core Web Vitals data for all URLs (lab and field if available)
 - Root cause analysis of key issues
 - Prioritized recommendations with estimated impact
@@ -240,6 +241,22 @@ Include ALL relevant data, ALL URLs, ALL actionable recommendations.
 Focus on actionable insights, not just data dumps. A developer reading your report
 should know exactly what to fix first and why.
 """
+
+
+def _extract_zip_path(markdown: str) -> Optional[str]:
+    """Extract zip file path from markdown report.
+
+    Looks for local .zip file paths in the report content.
+
+    Args:
+        markdown: The markdown report content
+
+    Returns:
+        Zip file path if found, None otherwise
+    """
+    pattern = r'[./\w-]+\.zip'
+    match = re.search(pattern, markdown)
+    return match.group(0) if match else None
 
 
 def _extract_excel_path(markdown: str) -> Optional[str]:
@@ -333,10 +350,14 @@ async def analyze_pages(request: PageSpeedRequest) -> Dict[str, Any]:
 
     raw_markdown = result.result
 
-    # Post-process: extract Excel path
+    # Post-process: extract Excel and zip paths
     excel_path = _extract_excel_path(raw_markdown)
     if not excel_path:
         logger.warning("Excel file path not found in report")
+
+    zip_path = _extract_zip_path(raw_markdown)
+    if not zip_path:
+        logger.warning("Zip file path not found in report")
 
     # Post-process: validate report
     if len(raw_markdown) < 500:
@@ -366,6 +387,7 @@ async def analyze_pages(request: PageSpeedRequest) -> Dict[str, Any]:
         "markdown": final_markdown,
         "markdown_path": str(report_path),
         "excel_path": excel_path,
+        "zip_path": zip_path,
         "cost_usd": result.total_cost_usd or 0,
         "duration_sec": (result.duration_ms or 0) / 1000,
     }

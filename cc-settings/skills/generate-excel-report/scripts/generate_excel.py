@@ -16,9 +16,11 @@ import io
 import json
 import re
 import sys
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -324,6 +326,65 @@ def _format_field_metric(field: dict, key: str, unit: str) -> str:
     return f"{value}{unit}"
 
 
+def _url_to_slug(url: str) -> str:
+    """Convert URL to a filesystem-safe slug."""
+    parsed = urlparse(url)
+    slug = parsed.netloc + parsed.path
+    slug = slug.strip("/").replace("/", "-").replace(".", "-")
+    return slug or "unknown"
+
+
+def create_source_data_zip(
+    data: dict, output_dir: str, timestamp: str, job_id: str | None = None
+) -> str:
+    """Create a zip file containing all raw API source data.
+
+    Organizes data into subdirectories:
+    - collected_data.json (full consolidated data)
+    - psi/{slug}_{strategy}.json (per-URL PSI results)
+    - crux/{slug}.json (per-URL CrUX results)
+    - network/{slug}.json (per-URL network results)
+
+    Returns:
+        Path to the created zip file.
+    """
+    prefix = f"{job_id}_" if job_id else ""
+    zip_filename = f"page_speed_source_data_{prefix}{timestamp}.zip"
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    zip_path = output_path / zip_filename
+
+    with zipfile.ZipFile(str(zip_path), "w", zipfile.ZIP_DEFLATED) as zf:
+        # Full consolidated data
+        zf.writestr("collected_data.json", json.dumps(data, indent=2))
+
+        # Individual PSI results
+        for psi in data.get("psi_results", []):
+            url = psi.get("url", "")
+            slug = _url_to_slug(url)
+            strategies = psi.get("strategies", {})
+            for strategy_name, strategy_data in strategies.items():
+                entry = {"url": url, "strategy": strategy_name, **strategy_data}
+                zf.writestr(
+                    f"psi/{slug}_{strategy_name}.json",
+                    json.dumps(entry, indent=2),
+                )
+
+        # Individual CrUX results
+        for crux in data.get("crux_results", []):
+            url = crux.get("url", "")
+            slug = _url_to_slug(url)
+            zf.writestr(f"crux/{slug}.json", json.dumps(crux, indent=2))
+
+        # Individual network results
+        for network in data.get("network_results", []):
+            url = network.get("url", "")
+            slug = _url_to_slug(url)
+            zf.writestr(f"network/{slug}.json", json.dumps(network, indent=2))
+
+    return str(zip_path)
+
+
 def generate_excel(data: dict, output_dir: str = "./output", job_id: str | None = None) -> dict:
     """Generate Excel workbook and save locally.
 
@@ -361,10 +422,16 @@ def generate_excel(data: dict, output_dir: str = "./output", job_id: str | None 
     file_path = output_path / filename
     wb.save(str(file_path))
 
+    # Create source data zip
+    try:
+        zip_path = create_source_data_zip(data, output_dir, timestamp, job_id)
+    except Exception:
+        zip_path = None
+
     # Count URLs
     url_count = len(data.get("urls", [])) or len(data.get("psi_results", []))
 
-    return {
+    result = {
         "success": True,
         "file_path": str(file_path),
         "filename": filename,
@@ -372,6 +439,9 @@ def generate_excel(data: dict, output_dir: str = "./output", job_id: str | None 
         "url_count": url_count,
         "generated_at": datetime.now().isoformat() + "Z",
     }
+    if zip_path:
+        result["zip_file_path"] = zip_path
+    return result
 
 
 def main():

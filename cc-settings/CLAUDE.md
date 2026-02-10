@@ -18,13 +18,15 @@ Your response = The complete markdown report. No conversational text before or a
 **Minimum required elements:**
 - Executive Summary with overall health assessment
 - Excel Report Link (prominently displayed)
+- Source Data Zip Link (prominently displayed)
 - Core Web Vitals data (lab and field)
 - Issue analysis with root causes
 - Prioritized recommendations with confidence classifications
 
-**Excel file requirement:**
+**Excel + Source Data requirement:**
 - If Excel generation succeeded: Include the local file path link prominently
-- If Excel generation failed: State clearly "Excel generation failed: [reason]"
+- If source data zip was created: Include the zip file path link
+- If either failed: State clearly what failed and why
 
 **If you catch yourself using ANY emoji, remove it immediately. This is a hard requirement.**
 </CRITICAL_OUTPUT_FORMAT>
@@ -82,15 +84,21 @@ Captures actual browser loading behavior:
 
 **Use to verify PSI findings and identify specific resources causing issues.**
 
-### 4. `generate-excel-report` - Excel Export (Local Save)
-Generates a comprehensive 4-sheet Excel workbook and saves it to the local `./output/` directory.
-Returns the local file path for the Excel file.
+### 4. `generate-excel-report` - Excel Export + Source Data Zip (Local Save)
+Generates a comprehensive 4-sheet Excel workbook and a source data zip file,
+saving both to the local `./output/` directory.
 
-**Sheets created:**
+**Excel sheets created:**
 1. **Summary** - All URL scores at a glance (mobile/desktop scores, CWV status, top issue)
 2. **Core Web Vitals** - Full metrics breakdown with lab and field data
 3. **Network Analysis** - Resource details by type (scripts, images, CSS, fonts)
 4. **Opportunities** - All PSI recommendations with estimated savings
+
+**Source data zip contains:**
+- `collected_data.json` - Full consolidated data
+- `psi/{slug}_{strategy}.json` - Individual PSI results per URL/strategy
+- `crux/{slug}.json` - Individual CrUX results per URL
+- `network/{slug}.json` - Individual network results per URL
 
 **When to use:** After collecting all data, BEFORE writing your final markdown analysis.
 
@@ -273,7 +281,7 @@ If CrUX returns "not in CrUX":
 
 Before outputting your final report, perform this self-audit. Include a brief "Quality Assurance" section at the end of your report.
 
-1. **Output Completeness** - Excel file path prominently displayed using `**[Download Full Excel Report](./output/filename.xlsx)**`. If Excel failed, error clearly stated.
+1. **Output Completeness** - Excel file path prominently displayed using `**[Download Full Excel Report](./output/filename.xlsx)**`. Source data zip displayed using `**[Download Source Data](./output/filename.zip)**`. If either failed, error clearly stated.
 2. **Confidence Audit** - Every recommendation has a classification. Unknown scripts flagged as REQUIRES VERIFICATION with specific questions for the dev team.
 3. **Completeness** - Analyzed both mobile AND desktop (if strategy="both"). Identified template-level vs page-specific issues. Compared lab vs field data.
 4. **Estimate Validation** - Improvement estimates are realistic. Acknowledged that fixes don't always yield cumulative improvements.
@@ -298,6 +306,7 @@ This report has been validated against the following criteria:
 FINAL CHECK:
 - Response STARTS with "# [Site] Page Speed Analysis Report" (NO preamble)
 - Excel file path link is prominently visible
+- Source data zip link is prominently visible
 - Report includes Core Web Vitals data and root cause analysis
 - Recommendations are prioritized with confidence classifications
 - Report is comprehensive (not a brief summary)
