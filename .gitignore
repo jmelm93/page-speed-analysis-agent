@@ -1,0 +1,43 @@
+# Environment variables (contains API keys)
+.env
+
+# User config (may contain client URLs)
+config.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Output files (generated reports)
+output/*.xlsx
+output/*.md
+output/*.json
+!output/.gitkeep
+
+# Intermediate data files (generated during analysis by the agent)
+collected_data.json
+psi_*.json
+crux_*.json
+network_*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code working files
+.claude/

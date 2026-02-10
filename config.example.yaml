@@ -1,0 +1,21 @@
+# Page Speed Analyzer Configuration
+# Copy this file to config.yaml and edit your URLs:
+#   cp config.example.yaml config.yaml
+#
+# Then run: python run.py
+
+# URLs to analyze (1-10 URLs)
+# template_type is optional but helps identify template-level vs page-specific issues
+urls:
+  - url: "https://example.com"
+    template_type: "homepage"
+  - url: "https://example.com/blog/sample-post"
+    template_type: "blog-post"
+
+# Analysis strategy: "mobile", "desktop", or "both"
+strategy: "both"
+
+# Options (all optional - defaults shown)
+# include_network_waterfall: true    # Capture network data via Playwright
+# include_screenshots: false         # Page screenshots (experimental)
+# model_override: null               # Override Claude model (e.g., "claude-sonnet-4-5")

@@ -1,0 +1,7 @@
+claude-agent-sdk
+aiohttp>=3.8.0
+playwright
+openpyxl
+pydantic>=2.0
+python-dotenv
+pyyaml>=6.0
